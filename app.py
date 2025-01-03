@@ -124,43 +124,45 @@ class QueueBot(irc.bot.SingleServerIRCBot):
         elif message.lower().startswith(responses['q_pick_1']['command']):
             # Only if a mod uses this command
             if sender in operators:
-
-                # Get the username passed after "pick" (if any)
-                parts = message.split()
-                
-                # Look for a time being passed for the timer
-                timer_duration = default_time
-                for s in parts:
-                    if s.isdigit():
-                        timer_duration = s
-
-                # Look for a username passed for the timer
-                username_to_pick = ''
-                if len(parts) > 2:
-                    for s in parts[2:]: # skip the first message parts so we dont confuse the command for a username
-                        if s.startswith('@'):
-                            username_to_pick = s
-                        elif s.isalnum():
-                            # the next line does a fuzzy match incase the username wasnt typed correctly
-                            username_to_pick = process.extractOne(s, self.queue)
-
-                if len(username_to_pick) > 2: # this is basically checking if a username to pick was found or not
-                    if username_to_pick in self.queue:
-                        self.queue.remove(username_to_pick)
-                        c.privmsg(self.channel, responses['q_pick_1']['response_value'].format(username_to_pick=username_to_pick))
-                        self.start_timer(username_to_pick, timer_duration ,c)
-                    else:
-                        # If they are not in the queue
-                        c.privmsg(self.channel, responses['q_pick_2']['response_value'].format(username_to_pick=username_to_pick))
+                # check if the queue is empty
+                if len(self.queue) == 0:
+                    c.privmsg(self.channel, responses['q_pick_4']['response_value'])
                 else:
-                    # Default behavior: Remove the first person in the queue
-                    if self.queue:
+
+                    # Get the username passed after "pick" (if any)
+                    parts = message.split()
+                    
+                    # Look for a time being passed for the timer
+                    timer_duration = default_time
+                    for s in parts:
+                        if s.isdigit():
+                            # remove the time from the message parts so it doesnt get confused with a username later
+                            parts.remove(s) 
+                            timer_duration = s
+
+                    # Look for a username passed for the command
+                    username_to_pick = ''
+                    if len(parts) > 2:
+                        for s in parts[2:]: # skip the first message parts so we dont confuse the command for a username
+                            # use fuzzy match to pick the closest username in the queue to the text sent with the command 
+                            username_to_pick = process.extractOne(s, self.queue)[0] # the returned value is tuple with a string and the levenstein distance score
+                            # check the levenstein distance to make sure it's at least 70 to make sure we are fuzzy matching gibberish
+                            if process.extractOne(s, self.queue)[1] < 70: # kind of an arbitrary threshold. may need to tweak
+                                username_to_pick = s # if the fuzzy match was really bad, we will just keep the raw text from the command
+                            
+                    if len(username_to_pick) > 2: # this is basically checking if a username to pick was found or not
+                        if username_to_pick in self.queue: # think checking this is redundant, but leaving for now
+                            self.queue.remove(username_to_pick)
+                            c.privmsg(self.channel, responses['q_pick_1']['response_value'].format(username_to_pick=username_to_pick))
+                            self.start_timer(username_to_pick, timer_duration ,c)
+                        else:
+                            # If they are not in the queue
+                            c.privmsg(self.channel, responses['q_pick_2']['response_value'].format(username_to_pick=username_to_pick))
+                    else:
+                        # Default behavior: Remove the first person in the queue
                         username_to_pick = self.queue.pop(0)
                         c.privmsg(self.channel, responses['q_pick_3']['response_value'].format(username_to_pick=username_to_pick))
                         self.start_timer(username_to_pick, timer_duration ,c)
-                    else:
-                        # If the queue is empty
-                        c.privmsg(self.channel, responses['q_pick_4']['response_value'])
 
 
         # Remove someone from the queue
@@ -169,11 +171,13 @@ class QueueBot(irc.bot.SingleServerIRCBot):
             parts = message.split()
             
             # Find the username to remove from the queue
-            username_to_remove = sender # if there isnt anything after the remove command, then they will removing themselves
+            username_to_remove = ''
+            if len(parts) == 2:
+                username_to_remove = sender # if there isnt anything after the remove command, then they will removing themselves
+            if len(parts) > 2: # just adding this to make the empty queue message display whatever the sender typed after the remove command
+                username_to_remove = parts[2]
 
             # First check if the queue is empty
-            print("poo")
-            print(len(self.queue))
             if len(self.queue) == 0:
                 c.privmsg(self.channel, responses['q_remove_2']['response_value'].format(username_to_remove=username_to_remove))
             else:

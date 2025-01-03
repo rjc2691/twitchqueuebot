@@ -1,0 +1,93 @@
+TWITCH_USER: 'example'
+OAUTH_TOKEN: 'oauth:asdf1234'
+CHANNEL: '#example' # twitch channel to connect to, starts with a #
+default_queue_timer_mins: 20 # when someone is picked from the queue, this is how long they have before their time is up
+queue_reminder_timer_mins: 10 # is the the periodic reminder that is sent to chat when the queue is open
+min_messages_for_reminder: 10 # this is the minimum number of messages that have to be sent in chat before a reminder can go out, to avoid too many reminders 
+operators: "@user1 @user2 @user3" # these are the users who are allowed to execute commands like opening and closing the queue
+
+responses:
+  q_resp_1:
+    command: '!q' 
+    description: 'This response gives information about using the queue'
+    response_value: "If you wish to play 2v2 with Phan, use the command \"!q join\" to be placed in the queue. use \"!q show\" to see the current queue."
+
+  q_resp_2:
+    command: '!q' # this response is used for multiple commands as long they start with the value on the left
+    description: 'Response to commands when the queue is closed'
+    response_value: "Sorry, the queue is closed."
+  
+  q_open_1:
+    command: '!q open'
+    description: 'Response when the queue is opened.'
+    response_value: "The queue is now open. Use \"!q join\" to add yourself to the queue."
+  
+  q_close_1:
+    command: '!q close'
+    description: 'Response for when the queue is closed'
+    response_value: "The queue is now closed"
+    
+  q_join_1:
+    command: '!q join'
+    description: 'Response for when someone wants to join the queue'
+    response_value: "{sender} has joined the queue! You can join the SC2 chat channel \"phan\" on the NA region so that you are ready when it is your turn."
+    
+  q_join_2:
+    command: '!q join'
+    description: 'Response for when someone wants to join the queue but is already in it'
+    response_value: "{sender}, you're already in the queue!"
+    
+  q_pick_1:
+    command: '!q pick'
+    description: 'Response when someone is picked by default from the queue'
+    response_value: "{username_to_pick} has been picked from the queue! Please join the SC2 chat channel \"phan\" on the NA region to join her party. You can invite her to your party, or make sure that you allow invites from non-friends in SC2 settings."
+
+  q_pick_2:
+    command: '!q pick'
+    description: 'Response when someone is picked from the queue but is not in the queue'
+    response_value: "{username_to_pick} is not in the queue."
+    
+  q_pick_3:
+    command: '!q pick'
+    description: 'Response when someone is picked by name from the queue'
+    response_value: "{username_to_pick} has been picked from the queue! Please join the SC2 chat channel \"phan\" on the NA region to join her party. You can invite her to your party, or make sure that you allow invites from non-friends in SC2 settings."
+    
+  q_pick_4:
+    command: '!q pick'
+    description: 'Response when no one can be picked because no one is in the queue'
+    response_value: "The queue is empty, no one to pick!"
+   
+  q_show_1:
+    command: '!q show'
+    description: 'Response when asked to show the current queue'
+    response_value: "Current queue: {queue}"
+    
+  q_show_2:
+    command: '!q show'
+    description: 'Response when asked to show the current queue but it is empty'
+    response_value: "The queue is currently empty."
+
+  q_remove_1:
+    command: '!q remove'
+    description: 'Response when a user is removed from the queue'
+    response_value: "{username_to_remove} was removed from the queue."
+  
+  q_remove_2:
+    command: '!q remove'
+    description: 'Response when a user cant be removed from the queue because they arent in it'
+    response_value: "{username_to_remove} was not in the queue."
+
+  q_remove_3:
+    command: '!q remove'
+    description: 'Response when a clear username is not provided with this command'
+    response_value: "Please provide a valid username to remove from the queue."
+
+  times_up:
+    command: ''
+    description: 'This message tells the chat that time is up for a certain user'
+    response_value: "Time's up for {removed_user}!"
+    
+  reminder:
+    command: ''
+    description: 'This message tells the chat that the queue is still open'
+    response_value: "This is a reminder that the queue is open! If you wish to play 2v2 with Phan, use the command \"!q join\" to be placed in the queue. We will try to pick a new person from the queue every {default_time} minutes."
